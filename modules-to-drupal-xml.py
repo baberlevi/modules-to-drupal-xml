@@ -45,10 +45,29 @@ def write_xml(module, filename):
     type.text = 'software_package'
 
     body = ET.SubElement(node, 'body')
-    und = ET.SubElement(body, 'und', _numeric_keys="1")
-    n0 = ET.SubElement(und, 'n0')
-    value = ET.SubElement(n0, 'value')
-    value.text = module['body'].decode('utf-8','xmlcharrefreplace')
+    und_body = ET.SubElement(body, 'und', _numeric_keys="1")
+    n0_body = ET.SubElement(und_body, 'n0')
+    value_body = ET.SubElement(n0_body, 'value')
+    value_body.text = module['body'].decode('utf-8','xmlcharrefreplace')
+
+    field_category = ET.SubElement(node, 'field_category')
+    und_category = ET.SubElement(field_category, 'und', _numeric_keys="1")
+    n0_category = ET.SubElement(und_category, 'n0')
+    value_category = ET.SubElement(n0_category, 'value')
+    value_category.text = '1' #Category 1 on the RIT website is Software
+
+    field_sp_links = ET.SubElement(node, 'field_sp_links')
+    und_links = ET.SubElement(field_sp_links, 'und', _numeric_keys="1")
+    n0_links = ET.SubElement(und_links, 'n0')
+    url0 = ET.SubElement(n0_links, 'url')
+    url0.text = module['homepage_url'].decode('utf-8','xmlcharrefreplace')
+    link_title0 = ET.SubElement(n0_links, 'title')
+    link_title0.text = 'Homepage'
+    n1_links = ET.SubElement(und_links, 'n1')
+    url1 = ET.SubElement(n1_links, 'url')
+    url1.text = module['download_url'].decode('utf-8','xmlcharrefreplace')
+    link_title1 = ET.SubElement(n1_links, 'title')
+    link_title1.text = 'Download'
 
     xml_tree.write(filename,encoding="utf-8")
 
@@ -96,9 +115,9 @@ def get_module(infile):
                         if linelist[1] == "notes":
                             module['body'] = linelist[2].replace('"','').strip()
                         if linelist[1] == "homepage":
-                            module['homepage_url'] = linelist[2].strip()
+                            module['homepage_url'] = linelist[2].replace('"','').strip()
                         if linelist[1] == "download":
-                            module['download_url'] = linelist[2].strip()
+                            module['download_url'] = linelist[2].replace('"','').strip()
 
                     #drupal=module
                     #node_export.node.title=name
