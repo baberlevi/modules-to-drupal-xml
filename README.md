@@ -1,4 +1,5 @@
 # Convert module files to xml for import to drupal as nodes
+Written in Python
 
 ## Prerequisites
 * Directory of module files with sturcture as ./modules/module_name/version
@@ -7,4 +8,3 @@
  * notes
  * homepage
  * download
-  
