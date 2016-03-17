@@ -2,20 +2,31 @@
 import string as str
 import sys
 
+def main():
+    risa_list = get_module_list('/opt/rit/modules')
+    #condo_list = get_module_list('/home/baber/condo-modules')
 
-def get_module_list():
-    module = read_file('/home/baber/modules/modules/abyss/1.9.0')
-    print "title is: %s" % module['title']
+    for risa_module in risa_list:
+        if risa_module:
+            module = get_module(risa_module)
+            print "title is: %s" % module['title']
+            print "body is: %s" % module['body']
+
+
+def get_module_list(module_path):
+    import os
+
+    module_names = []
+
+    for (dirpath, dirnames, filenames) in os.walk(module_path,followlinks=True):
+        for name in filenames:
+                if name != 'library.tcl' and name!= '.version':
+                    module_names.append(os.path.join(dirpath,name))
+
+    return module_names
+
 
 def get_module(infile):
-
-
-
-    except IOError as e:
-        print "I/O error({0}): {1}".format(e.errno, e.strerror)
-    except:
-        print "Unexpected error:", sys.exc_info()[0]
-        raise
 
     module = dict() #create an empty dictionary object to hold the module key/value pairs
 
@@ -34,7 +45,7 @@ def get_module(infile):
                             module['version'] = linelist[2]
                         if linelist[1] == "notes":
                             module['body'] = linelist[2]
-                        if linelist[1] == "hoempage":
+                        if linelist[1] == "homepage":
                             module['homepage_url'] = linelist[2]
                         if linelist[1] == "download":
                             module['download_url'] = linelist[2]
