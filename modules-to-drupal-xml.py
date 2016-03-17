@@ -6,11 +6,49 @@ def main():
     risa_list = get_module_list('/opt/rit/modules')
     #condo_list = get_module_list('/home/baber/condo-modules')
 
+    create_xml()
+
     for risa_module in risa_list:
         if risa_module:
             module = get_module(risa_module)
-            print "title is: %s" % module['title']
-            print "body is: %s" % module['body']
+            #print "title is: %s" % module['title']
+            #print "body is: %s" % module['body']
+            write_xml(module)
+
+def create_xml():
+    import xml.etree.ElementTree as ET
+
+    node_export = ET.Element('node_export')
+    xml_root = ET.ElementTree(node_export)
+
+    xml_root.write('test.xml')
+
+def write_xml(module):
+
+    import xml.etree.ElementTree as ET
+    '''
+    node_export = ET.Element('node_export')
+    xml_root = ET.ElementTree(node_export)
+    '''
+
+    xml_tree = ET.parse('test.xml')
+    xml_root = xml_tree.getroot()
+
+    node = ET.SubElement(xml_root, 'node')
+
+    title = ET.SubElement(node, 'title')
+    title.text = module['title']
+
+    type = ET.SubElement(node, 'type')
+    type.text = 'software_package'
+
+    body = ET.SubElement(node, 'body')
+    und = ET.SubElement(body, 'und', _numeric_keys="1")
+    n0 = ET.SubElement(und, 'n0')
+    value = ET.SubElement(n0, 'value')
+    #value.text = module['body']
+
+    xml_tree.write('test.xml')
 
 
 def get_module_list(module_path):
