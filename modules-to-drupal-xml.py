@@ -6,14 +6,16 @@ def main():
     risa_list = get_module_list('/opt/rit/modules')
     #condo_list = get_module_list('/home/baber/condo-modules')
 
-    create_xml()
+    filename = create_xml()
 
     for risa_module in risa_list:
         if risa_module:
             module = get_module(risa_module)
             #print "title is: %s" % module['title']
             #print "body is: %s" % module['body']
-            write_xml(module)
+            write_xml(module, filename)
+
+    prettify_xml(filename)
 
 def create_xml():
     import xml.etree.ElementTree as ET
@@ -21,17 +23,17 @@ def create_xml():
     node_export = ET.Element('node_export')
     xml_root = ET.ElementTree(node_export)
 
-    xml_root.write('test.xml')
+    #todo: write some timestamped file
+    filename = 'test.xml'
+    xml_root.write(filename)
 
-def write_xml(module):
+    return filename
+
+def write_xml(module, filename):
 
     import xml.etree.ElementTree as ET
-    '''
-    node_export = ET.Element('node_export')
-    xml_root = ET.ElementTree(node_export)
-    '''
 
-    xml_tree = ET.parse('test.xml')
+    xml_tree = ET.parse(filename)
     xml_root = xml_tree.getroot()
 
     node = ET.SubElement(xml_root, 'node')
@@ -46,10 +48,20 @@ def write_xml(module):
     und = ET.SubElement(body, 'und', _numeric_keys="1")
     n0 = ET.SubElement(und, 'n0')
     value = ET.SubElement(n0, 'value')
-    #value.text = module['body']
+    value.text = module['body'].decode('utf-8','xmlcharrefreplace')
 
-    xml_tree.write('test.xml')
+    xml_tree.write(filename,encoding="utf-8")
 
+def prettify_xml(filename):
+    import xml.dom.minidom
+    import codecs
+
+    xml = xml.dom.minidom.parse(filename)
+    better_xml = xml.toprettyxml()
+    #better_xml.encode('utf-8','replace')
+
+    with codecs.open(filename, encoding='utf-8', mode='w+') as file:
+        file.write(better_xml)
 
 def get_module_list(module_path):
     import os
@@ -78,15 +90,15 @@ def get_module(infile):
                 if linelist :
                     if linelist[0] == "set":
                         if linelist[1] == "name":
-                            module['title'] = linelist[2]
+                            module['title'] = linelist[2].strip()
                         if linelist[1] == "version":
-                            module['version'] = linelist[2]
+                            module['version'] = linelist[2].strip()
                         if linelist[1] == "notes":
-                            module['body'] = linelist[2]
+                            module['body'] = linelist[2].replace('"','').strip()
                         if linelist[1] == "homepage":
-                            module['homepage_url'] = linelist[2]
+                            module['homepage_url'] = linelist[2].strip()
                         if linelist[1] == "download":
-                            module['download_url'] = linelist[2]
+                            module['download_url'] = linelist[2].strip()
 
                     #drupal=module
                     #node_export.node.title=name
