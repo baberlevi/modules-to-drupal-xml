@@ -2,20 +2,39 @@
 import string as str
 import sys
 
+#static constants to be used in the xml export
+class DrupalConstants(object):
+    def __init__(self):
+        self.category = '1' #software on RIT site is category 1
+        self.type = 'software_package' #content type machine name
+
 def main():
     risa_list = get_module_list('/opt/rit/modules')
     #condo_list = get_module_list('/home/baber/condo-modules')
+    #print risa_list
 
     filename = create_xml()
+    last_module = dict()
 
     for risa_module in risa_list:
         if risa_module:
             module = get_module(risa_module)
-            #print "title is: %s" % module['title']
-            #print "body is: %s" % module['body']
-            write_xml(module, filename)
+            is_duplicate = check_duplicate(module, last_module)
+            if is_duplicate:
+                add_version(module, filename)
+            else:
+                write_xml(module, filename)
+
+            last_module = module
 
     prettify_xml(filename)
+
+def check_duplicate(module, last_module):
+    if last_module and (module['title'] == last_module['title']):
+        #print "duplicate module"
+        return True
+    else:
+        return False
 
 def create_xml():
     import xml.etree.ElementTree as ET
@@ -32,6 +51,7 @@ def create_xml():
 def write_xml(module, filename):
 
     import xml.etree.ElementTree as ET
+    dc = DrupalConstants()
 
     xml_tree = ET.parse(filename)
     xml_root = xml_tree.getroot()
@@ -42,7 +62,7 @@ def write_xml(module, filename):
     title.text = module['title']
 
     type = ET.SubElement(node, 'type')
-    type.text = 'software_package'
+    type.text = dc.type
 
     body = ET.SubElement(node, 'body')
     und_body = ET.SubElement(body, 'und', _numeric_keys="1")
@@ -54,7 +74,7 @@ def write_xml(module, filename):
     und_category = ET.SubElement(field_category, 'und', _numeric_keys="1")
     n0_category = ET.SubElement(und_category, 'n0')
     value_category = ET.SubElement(n0_category, 'value')
-    value_category.text = '1' #Category 1 on the RIT website is Software
+    value_category.text = dc.category
 
     field_sp_links = ET.SubElement(node, 'field_sp_links')
     und_links = ET.SubElement(field_sp_links, 'und', _numeric_keys="1")
@@ -68,6 +88,30 @@ def write_xml(module, filename):
     url1.text = module['download_url'].decode('utf-8','xmlcharrefreplace')
     link_title1 = ET.SubElement(n1_links, 'title')
     link_title1.text = 'Download'
+
+    field_versions = ET.SubElement(node, 'field_versions')
+    und_versions = ET.SubElement(field_versions, 'und', _numeric_keys="1")
+    n0_versions = ET.SubElement(und_versions, 'n0')
+    value_versions = ET.SubElement(n0_versions, 'value')
+    value_versions.text = module['version']
+
+    xml_tree.write(filename,encoding="utf-8")
+
+def add_version(module, filename):
+
+    import xml.etree.ElementTree as ET
+    dc = DrupalConstants()
+
+    xml_tree = ET.parse(filename)
+    xml_root = xml_tree.getroot()
+
+    for node in xml_root.findall('node'):
+        if node.find('title').text == module['title']:
+            field_versions = node.find('field_versions')
+            und_versions = field_versions.find('und')
+            n1_versions = ET.SubElement(und_versions, 'n1')
+            value_versions = ET.SubElement(n1_versions, 'value')
+            value_versions.text = module['version']
 
     xml_tree.write(filename,encoding="utf-8")
 
@@ -88,9 +132,10 @@ def get_module_list(module_path):
     module_names = []
 
     for (dirpath, dirnames, filenames) in os.walk(module_path,followlinks=True):
+        dirnames.sort()
         for name in filenames:
-                if name != 'library.tcl' and name!= '.version':
-                    module_names.append(os.path.join(dirpath,name))
+            if name != 'library.tcl' and name!= '.version':
+                module_names.append(os.path.join(dirpath,name))
 
     return module_names
 
