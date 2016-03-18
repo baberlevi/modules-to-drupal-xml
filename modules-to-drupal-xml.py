@@ -72,8 +72,8 @@ def write_xml(module, filename):
     field_category = ET.SubElement(node, 'field_category')
     und_category = ET.SubElement(field_category, 'und', _numeric_keys="1")
     n0_category = ET.SubElement(und_category, 'n0')
-    value_category = ET.SubElement(n0_category, 'value')
-    value_category.text = dc.category
+    tid_category = ET.SubElement(n0_category, 'tid')
+    tid_category.text = dc.category
 
     field_sp_links = ET.SubElement(node, 'field_sp_links')
     und_links = ET.SubElement(field_sp_links, 'und', _numeric_keys="1")
