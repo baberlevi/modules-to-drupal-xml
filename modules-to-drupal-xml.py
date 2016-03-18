@@ -11,7 +11,6 @@ class DrupalConstants(object):
 def main():
     risa_list = get_module_list('/opt/rit/modules')
     #condo_list = get_module_list('/home/baber/condo-modules')
-    #print risa_list
 
     filename = create_xml()
     last_module = dict()
@@ -163,16 +162,6 @@ def get_module(infile):
                             module['homepage_url'] = linelist[2].replace('"','').strip()
                         if linelist[1] == "download":
                             module['download_url'] = linelist[2].replace('"','').strip()
-
-                    #drupal=module
-                    #node_export.node.title=name
-                    #node_export.node.body.und.n0.value=notes
-                    #node_export.node.field_sp_links.und.n0.url=homepage
-                    #node_export.node.field_sp_links.und.n1.url=download
-                    #node_export.node.path.alias=name
-                    #node_export.node.versions=version
-                    #node_export.node.parallel_capability=parallelism
-                    #module name ?
 
             fid.close()
 
