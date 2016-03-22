@@ -7,10 +7,14 @@ class DrupalConstants(object):
     def __init__(self):
         self.category = '1' #software on RIT site is category 1
         self.type = 'software_package' #content type machine name
+        self.risa_version_field = 'field_risa_versions'
+        self.condo_version_field = 'field_condo_versions'
 
 def main():
+    dc = DrupalConstants()
+
     risa_list = get_module_list('/opt/rit/modules')
-    #condo_list = get_module_list('/home/baber/condo-modules')
+    condo_list = get_module_list('/home/baber/condo-modules')
 
     filename = create_xml()
     last_module = dict()
@@ -18,6 +22,23 @@ def main():
     for risa_module in risa_list:
         if risa_module:
             module = get_module(risa_module)
+
+            if module in condo_list:
+                condo_module = get_module(module)
+                add_version(condo_module, dc.condo_version_field, filename)
+
+            is_duplicate = check_duplicate(module, last_module)
+            if is_duplicate:
+                add_version(module, dc.risa_version_field, filename)
+            else:
+                write_xml(module, filename)
+
+            last_module = module
+
+    '''
+    for condo_module in condo_list:
+        if condo_module:
+            module = get_module(condo_module)
             is_duplicate = check_duplicate(module, last_module)
             if is_duplicate:
                 add_version(module, filename)
@@ -25,12 +46,12 @@ def main():
                 write_xml(module, filename)
 
             last_module = module
+    '''
 
     prettify_xml(filename)
 
 def check_duplicate(module, last_module):
     if last_module and (module['title'] == last_module['title']):
-        #print "duplicate module"
         return True
     else:
         return False
@@ -57,23 +78,28 @@ def write_xml(module, filename):
 
     node = ET.SubElement(xml_root, 'node')
 
+    # Software Title
     title = ET.SubElement(node, 'title')
     title.text = module['title']
 
+    #Set content type to software_package
     type = ET.SubElement(node, 'type')
     type.text = dc.type
 
+    #Body holds description of Software functionality
     body = ET.SubElement(node, 'body')
     und_body = ET.SubElement(body, 'und', _numeric_keys="1")
     n0_body = ET.SubElement(und_body, 'n0')
     value_body = ET.SubElement(n0_body, 'value')
     value_body.text = module['body'].decode('utf-8','xmlcharrefreplace')
 
+    #Category taxonomy term, currently hard set to 'Software'
     field_category = ET.SubElement(node, 'field_category')
     und_category = ET.SubElement(field_category, 'und', _numeric_keys="1")
     n0_category = ET.SubElement(und_category, 'n0')
     tid_category = ET.SubElement(n0_category, 'tid')
     tid_category.text = dc.category
+
 
     field_sp_links = ET.SubElement(node, 'field_sp_links')
     und_links = ET.SubElement(field_sp_links, 'und', _numeric_keys="1")
@@ -88,15 +114,22 @@ def write_xml(module, filename):
     link_title1 = ET.SubElement(n1_links, 'title')
     link_title1.text = 'Download'
 
-    field_versions = ET.SubElement(node, 'field_versions')
+    field_versions = ET.SubElement(node, dc.risa_version_field)
     und_versions = ET.SubElement(field_versions, 'und', _numeric_keys="1")
     n0_versions = ET.SubElement(und_versions, 'n0')
     value_versions = ET.SubElement(n0_versions, 'value')
     value_versions.text = module['version']
 
+    if 'parallel_capability' in module:
+        field_parallel_capability = ET.SubElement(node, 'field_parallel_capability')
+        und_parallel = ET.SubElement(field_parallel_capability, 'und', _numeric_keys="1")
+        n0_parallel = ET.SubElement(und_parallel, 'n0')
+        value_parallel = ET.SubElement(n0_parallel, 'value')
+        value_parallel.text = module['parallel_capability']
+
     xml_tree.write(filename,encoding="utf-8")
 
-def add_version(module, filename):
+def add_version(module, version_field, filename):
 
     import xml.etree.ElementTree as ET
     dc = DrupalConstants()
@@ -106,11 +139,18 @@ def add_version(module, filename):
 
     for node in xml_root.findall('node'):
         if node.find('title').text == module['title']:
-            field_versions = node.find('field_versions')
-            und_versions = field_versions.find('und')
-            n1_versions = ET.SubElement(und_versions, 'n1')
-            value_versions = ET.SubElement(n1_versions, 'value')
-            value_versions.text = module['version']
+            if node.find(version_field):
+                field_versions = node.find(version_field)
+                und_versions = field_versions.find('und')
+                n1_versions = ET.SubElement(und_versions, 'n1')
+                value_versions = ET.SubElement(n1_versions, 'value')
+                value_versions.text = module['version']
+            else:
+                field_versions = ET.SubElement(node, version_field)
+                und_versions = ET.SubElement(field_versions,'und')
+                n1_versions = ET.SubElement(und_versions, 'n1')
+                value_versions = ET.SubElement(n1_versions, 'value')
+                value_versions.text = module['version']
 
     xml_tree.write(filename,encoding="utf-8")
 
@@ -162,6 +202,8 @@ def get_module(infile):
                             module['homepage_url'] = linelist[2].replace('"','').strip()
                         if linelist[1] == "download":
                             module['download_url'] = linelist[2].replace('"','').strip()
+                        if linelist[1] == "parallelism":
+                            module['parallel_capability'] = linelist[2].replace('"','').strip()
 
             fid.close()
 
