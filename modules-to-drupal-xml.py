@@ -19,11 +19,17 @@ def main():
     filename = create_xml()
     last_module = dict()
 
+    print condo_list
+
     for risa_module in risa_list:
         if risa_module:
             module = get_module(risa_module)
 
+            #this is terrible and needs to be redone
+            #probably get a list of lists, then merge them, sort by name, then check for dups, and write_xml and add versions
+            #in that flow - how to differentiate condo/risa ?
             if module in condo_list:
+                print "this never happens"
                 condo_module = get_module(module)
                 add_version(condo_module, dc.condo_version_field, filename)
 
@@ -172,6 +178,8 @@ def get_module_list(module_path):
 
     for (dirpath, dirnames, filenames) in os.walk(module_path,followlinks=True):
         dirnames.sort()
+        if '.git' in dirnames:
+            dirnames.remove('.git')
         for name in filenames:
             if name != 'library.tcl' and name!= '.version':
                 module_names.append(os.path.join(dirpath,name))
