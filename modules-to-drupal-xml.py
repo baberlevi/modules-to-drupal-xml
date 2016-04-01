@@ -34,49 +34,17 @@ def main():
             module = get_module(condo_module)
         modlist.append(module)
 
-    #for module in modlist:
-    #    print module
-
-
     sortedlist = sorted(modlist, key=itemgetter('title'))
 
     for module in sortedlist:
-        print module['title']
+        #dup check should look for same version. also need to think about setting xml field for condo/risa
+        is_duplicate = check_duplicate(module, last_module)
+        if is_duplicate:
+            add_version(module, dc.risa_version_field, filename)
+        else:
+            write_xml(module, filename)
 
-    '''
-    for risa_module in risa_list:
-        if risa_module:
-            module = get_module(risa_module)
-
-            #this is terrible and needs to be redone
-            #probably get a list of lists, then merge them, sort by name, then check for dups, and write_xml and add versions
-            #in that flow - how to differentiate condo/risa ?
-            if module in condo_list:
-                print "this never happens"
-                condo_module = get_module(module)
-                add_version(condo_module, dc.condo_version_field, filename)
-
-            is_duplicate = check_duplicate(module, last_module)
-            if is_duplicate:
-                add_version(module, dc.risa_version_field, filename)
-            else:
-                write_xml(module, filename)
-
-            last_module = module.
-    '''
-
-    '''
-    for condo_module in condo_list:
-        if condo_module:
-            module = get_module(condo_module)
-            is_duplicate = check_duplicate(module, last_module)
-            if is_duplicate:
-                add_version(module, filename)
-            else:
-                write_xml(module, filename)
-
-            last_module = module
-    '''
+        last_module = module
 
     prettify_xml(filename)
 
@@ -121,7 +89,10 @@ def write_xml(module, filename):
     und_body = ET.SubElement(body, 'und', _numeric_keys="1")
     n0_body = ET.SubElement(und_body, 'n0')
     value_body = ET.SubElement(n0_body, 'value')
-    value_body.text = module['body'].decode('utf-8','xmlcharrefreplace')
+    if 'body' in module:
+        value_body.text = module['body'].decode('utf-8','xmlcharrefreplace')
+    else:
+        value_body.text = ''
 
     #Category taxonomy term, currently hard set to 'Software'
     field_category = ET.SubElement(node, 'field_category')
@@ -135,12 +106,18 @@ def write_xml(module, filename):
     und_links = ET.SubElement(field_sp_links, 'und', _numeric_keys="1")
     n0_links = ET.SubElement(und_links, 'n0')
     url0 = ET.SubElement(n0_links, 'url')
-    url0.text = module['homepage_url'].decode('utf-8','xmlcharrefreplace')
+    if 'homepage_url' in module:
+        url0.text = module['homepage_url'].decode('utf-8','xmlcharrefreplace')
+    else:
+        url0.text = ''
     link_title0 = ET.SubElement(n0_links, 'title')
     link_title0.text = 'Homepage'
     n1_links = ET.SubElement(und_links, 'n1')
     url1 = ET.SubElement(n1_links, 'url')
-    url1.text = module['download_url'].decode('utf-8','xmlcharrefreplace')
+    if 'download_url' in module:
+        url1.text = module['download_url'].decode('utf-8','xmlcharrefreplace')
+    else:
+        url1.text = ''
     link_title1 = ET.SubElement(n1_links, 'title')
     link_title1.text = 'Download'
 
