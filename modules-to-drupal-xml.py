@@ -26,12 +26,12 @@ def main():
 
     for risa_module in risa_list:
         if risa_module:
-            module = get_module(risa_module)
+            module = get_module(risa_module, 'risa')
         modlist.append(module)
 
     for condo_module in condo_list:
         if condo_module:
-            module = get_module(condo_module)
+            module = get_module(condo_module, 'condo')
         modlist.append(module)
 
     sortedlist = sorted(modlist, key=itemgetter('title'))
@@ -40,7 +40,7 @@ def main():
         #dup check should look for same version. also need to think about setting xml field for condo/risa
         is_duplicate = check_duplicate(module, last_module)
         if is_duplicate:
-            add_version(module, dc.risa_version_field, filename)
+            add_version(module, 'field_' + module['type'] + '_versions', filename)
         else:
             write_xml(module, filename)
 
@@ -121,11 +121,19 @@ def write_xml(module, filename):
     link_title1 = ET.SubElement(n1_links, 'title')
     link_title1.text = 'Download'
 
-    field_versions = ET.SubElement(node, dc.risa_version_field)
-    und_versions = ET.SubElement(field_versions, 'und', _numeric_keys="1")
-    n0_versions = ET.SubElement(und_versions, 'n0')
-    value_versions = ET.SubElement(n0_versions, 'value')
-    value_versions.text = module['version']
+    if 'risa_version' in module:
+        field_risa_versions = ET.SubElement(node, dc.risa_version_field)
+        und_risa_versions = ET.SubElement(field_risa_versions, 'und', _numeric_keys="1")
+        n0_risa_versions = ET.SubElement(und_risa_versions, 'n0')
+        value_risa_versions = ET.SubElement(n0_risa_versions, 'value')
+        value_risa_versions.text = module['risa_version']
+
+    if 'condo_version' in module:
+        field_condo_versions = ET.SubElement(node, dc.condo_version_field)
+        und_condo_versions = ET.SubElement(field_condo_versions, 'und', _numeric_keys="1")
+        n0_condo_versions = ET.SubElement(und_condo_versions, 'n0')
+        value_condo_versions = ET.SubElement(n0_condo_versions, 'value')
+        value_condo_versions.text = module['condo_version']
 
     if 'parallel_capability' in module:
         field_parallel_capability = ET.SubElement(node, 'field_parallel_capability')
@@ -151,13 +159,19 @@ def add_version(module, version_field, filename):
                 und_versions = field_versions.find('und')
                 n1_versions = ET.SubElement(und_versions, 'n1')
                 value_versions = ET.SubElement(n1_versions, 'value')
-                value_versions.text = module['version']
+                if 'risa_verison' in module:
+                    value_versions.text = module['risa_version']
+                if 'condo_version' in module:
+                    value_versions.text = module['condo_version']
             else:
                 field_versions = ET.SubElement(node, version_field)
                 und_versions = ET.SubElement(field_versions,'und')
                 n1_versions = ET.SubElement(und_versions, 'n1')
                 value_versions = ET.SubElement(n1_versions, 'value')
-                value_versions.text = module['version']
+                if 'risa_verison' in module:
+                    value_versions.text = module['risa_version']
+                if 'condo_version' in module:
+                    value_versions.text = module['condo_version']
 
     xml_tree.write(filename,encoding="utf-8")
 
@@ -188,7 +202,7 @@ def get_module_list(module_path):
     return module_names
 
 
-def get_module(infile):
+def get_module(infile, moduletype):
 
     module = dict() #create an empty dictionary object to hold the module key/value pairs
 
@@ -203,8 +217,10 @@ def get_module(infile):
                     if linelist[0] == "set":
                         if linelist[1] == "name":
                             module['title'] = linelist[2].strip()
-                        if linelist[1] == "version":
-                            module['version'] = linelist[2].strip()
+                        if linelist[1] == "version" and moduletype == 'risa':
+                            module['risa_version'] = linelist[2].strip()
+                        if linelist[1] == "version" and moduletype == 'condo':
+                            module['condo_version'] = linelist[2].strip()
                         if linelist[1] == "notes":
                             module['body'] = linelist[2].replace('"','').strip()
                         if linelist[1] == "homepage":
@@ -213,6 +229,7 @@ def get_module(infile):
                             module['download_url'] = linelist[2].replace('"','').strip()
                         if linelist[1] == "parallelism":
                             module['parallel_capability'] = linelist[2].replace('"','').strip()
+                        module['type'] = moduletype
 
             fid.close()
 
