@@ -11,6 +11,9 @@ class DrupalConstants(object):
         self.condo_version_field = 'field_condo_versions'
 
 def main():
+
+    from operator import itemgetter
+
     dc = DrupalConstants()
 
     risa_list = get_module_list('/opt/rit/modules')
@@ -19,8 +22,28 @@ def main():
     filename = create_xml()
     last_module = dict()
 
-    print condo_list
+    modlist = []
 
+    for risa_module in risa_list:
+        if risa_module:
+            module = get_module(risa_module)
+        modlist.append(module)
+
+    for condo_module in condo_list:
+        if condo_module:
+            module = get_module(condo_module)
+        modlist.append(module)
+
+    #for module in modlist:
+    #    print module
+
+
+    sortedlist = sorted(modlist, key=itemgetter('title'))
+
+    for module in sortedlist:
+        print module['title']
+
+    '''
     for risa_module in risa_list:
         if risa_module:
             module = get_module(risa_module)
@@ -39,7 +62,8 @@ def main():
             else:
                 write_xml(module, filename)
 
-            last_module = module
+            last_module = module.
+    '''
 
     '''
     for condo_module in condo_list:
