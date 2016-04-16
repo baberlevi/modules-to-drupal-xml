@@ -50,6 +50,8 @@ def main():
 
 def check_duplicate(module, last_module):
     if last_module and (module['title'] == last_module['title']):
+        if module['title'] == 'R' and 'risa_version' in module:
+            print module['risa_version']
         return True
     else:
         return False
@@ -152,9 +154,13 @@ def add_version(module, version_field, filename):
     xml_tree = ET.parse(filename)
     xml_root = xml_tree.getroot()
 
+    if module['title'] == 'R': #and 'risa_verison' in module:
+        print module['title']
+        #print module['risa_verison']
+
     for node in xml_root.findall('node'):
         if node.find('title').text == module['title']:
-            if node.find(version_field):
+            if node.find(version_field): #deprecated method need to find alternative
                 field_versions = node.find(version_field)
                 und_versions = field_versions.find('und')
                 n1_versions = ET.SubElement(und_versions, 'n1')
