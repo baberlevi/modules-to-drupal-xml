@@ -161,8 +161,12 @@ def add_version(module, version_field, filename):
             if node.find(version_field): #deprecated method need to find alternative
                 field_versions = node.find(version_field)
                 und_versions = field_versions.find('und')
-                n1_versions = ET.SubElement(und_versions, 'n1')
-                value_versions = ET.SubElement(n1_versions, 'value')
+                if und_versions.find('n0'):
+                    nx = 'n1'
+                else:
+                    nx = 'n0'
+                nx_versions = ET.SubElement(und_versions, nx)
+                value_versions = ET.SubElement(nx_versions, 'value')
                 if 'risa_version' in module:
                     value_versions.text = module['risa_version']
                 if 'condo_version' in module:
@@ -170,8 +174,12 @@ def add_version(module, version_field, filename):
             else:
                 field_versions = ET.SubElement(node, version_field)
                 und_versions = ET.SubElement(field_versions,'und')
-                n1_versions = ET.SubElement(und_versions, 'n1')
-                value_versions = ET.SubElement(n1_versions, 'value')
+                if und_versions.find('n0'):
+                    nx = 'n1'
+                else:
+                    nx = 'n0'
+                nx_versions = ET.SubElement(und_versions, nx)
+                value_versions = ET.SubElement(nx_versions, 'value')
                 if 'risa_version' in module:
                     value_versions.text = module['risa_version']
                 if 'condo_version' in module:
