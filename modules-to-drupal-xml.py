@@ -50,8 +50,8 @@ def main():
 
 def check_duplicate(module, last_module):
     if last_module and (module['title'] == last_module['title']):
-        if module['title'] == 'R' and 'risa_version' in module:
-            print module['risa_version']
+        #if module['title'] == 'R' and 'risa_version' in module:
+            #print module['risa_version']
         return True
     else:
         return False
@@ -154,18 +154,16 @@ def add_version(module, version_field, filename):
     xml_tree = ET.parse(filename)
     xml_root = xml_tree.getroot()
 
-    if module['title'] == 'R': #and 'risa_verison' in module:
-        print module['title']
-        #print module['risa_verison']
-
     for node in xml_root.findall('node'):
         if node.find('title').text == module['title']:
+
+            #if node.version_field is not None: #lookup how to do this when i get internet again (in the car)
             if node.find(version_field): #deprecated method need to find alternative
                 field_versions = node.find(version_field)
                 und_versions = field_versions.find('und')
                 n1_versions = ET.SubElement(und_versions, 'n1')
                 value_versions = ET.SubElement(n1_versions, 'value')
-                if 'risa_verison' in module:
+                if 'risa_version' in module:
                     value_versions.text = module['risa_version']
                 if 'condo_version' in module:
                     value_versions.text = module['condo_version']
@@ -174,7 +172,7 @@ def add_version(module, version_field, filename):
                 und_versions = ET.SubElement(field_versions,'und')
                 n1_versions = ET.SubElement(und_versions, 'n1')
                 value_versions = ET.SubElement(n1_versions, 'value')
-                if 'risa_verison' in module:
+                if 'risa_version' in module:
                     value_versions.text = module['risa_version']
                 if 'condo_version' in module:
                     value_versions.text = module['condo_version']
