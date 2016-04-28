@@ -173,7 +173,7 @@ def add_version(module, version_field, filename):
                     value_versions.text = module['condo_version']
             else:
                 field_versions = ET.SubElement(node, version_field)
-                und_versions = ET.SubElement(field_versions,'und')
+                und_versions = ET.SubElement(field_versions,'und', _numeric_keys="1")
                 if und_versions.find('n0'):
                     nx = 'n1'
                 else:
