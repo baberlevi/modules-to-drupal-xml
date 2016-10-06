@@ -207,8 +207,10 @@ def get_module_list(module_path):
         dirnames.sort()
         if '.git' in dirnames:
             dirnames.remove('.git')
+        if 'zzz-Templet' in dirnames:
+            dirnames.remove('zzz-Templet')
         for name in filenames:
-            if name != 'library.tcl' and name!= '.version':
+            if name != 'library.tcl' and name!= '.version' and name!= '.gitignore':
                 module_names.append(os.path.join(dirpath,name))
 
     return module_names
@@ -217,6 +219,7 @@ def get_module_list(module_path):
 def get_module(infile, moduletype):
 
     module = dict() #create an empty dictionary object to hold the module key/value pairs
+    module['filename'] = infile
 
     #read the file line by line, parsing each line, raise error if file can't be opened
     try:
@@ -228,13 +231,19 @@ def get_module(infile, moduletype):
                 if linelist :
                     if linelist[0] == "set":
                         if linelist[1] == "name":
-                            module['title'] = linelist[2].strip()
+                            if linelist[2].strip().lower() == 'bowtie2':
+                                module['title'] = 'bowtie'
+                            else:
+                                module['title'] = linelist[2].strip().lower()
                         if linelist[1] == "version" and moduletype == 'risa':
                             module['risa_version'] = linelist[2].strip()
                         if linelist[1] == "version" and moduletype == 'condo':
                             module['condo_version'] = linelist[2].strip()
                         if linelist[1] == "notes":
-                            module['body'] = linelist[2].replace('"','').strip()
+                            if "$description" not in linelist[2] and "${description}" not in linelist[2]:
+                                module['body'] = linelist[2].replace('"','').strip()
+                            else:
+                                module['body'] = ""
                         if linelist[1] == "homepage":
                             module['homepage_url'] = linelist[2].replace('"','').strip()
                         if linelist[1] == "download":
